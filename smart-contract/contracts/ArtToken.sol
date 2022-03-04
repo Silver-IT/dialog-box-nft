@@ -50,7 +50,7 @@ contract ArtToken is ERC721Enumerable, Ownable {
     items[tokenId].royalty = royalty;
   }
 
-  function getPrice(uint256 tokenId) onlyOwner public view IsExists(tokenId) returns (uint256) {
+  function getPrice(uint256 tokenId) public view IsExists(tokenId) returns (uint256) {
     return items[tokenId].price;
   }
 
