@@ -5,94 +5,77 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./ArtToken.sol";
 
 contract ArtMarketplace is IERC721Receiver{
-  ArtToken private token;
+  ArtToken private artCollection;
 
-  struct ItemForSale {
-    uint256 id;
-    uint256 tokenId;
+  struct ItemForSale{
     address payable seller;
     uint256 price;
-    bool isSold;
+    bool onSale;
   }
 
-  ItemForSale[] public itemsForSale;
-  mapping(uint256 => bool) public activeItems;
+  mapping(uint256 => ItemForSale) public itemsForSale;
 
-  event itemAddedForSale(uint256 id, uint256 tokenId, uint256 price);
-  event itemSold(uint256 id, address buyer, uint256 price);
+  event ItemAddedForSale(uint256 tokenId);
+  event ItemSold(uint256 id, address buyer, uint256 price);
 
   constructor(ArtToken _token) {
-    token = _token;
+    artCollection = _token;
   }
 
   modifier OnlyItemOwner(uint256 tokenId){
-    require(token.ownerOf(tokenId) == msg.sender, "Sender does not own the item");
+    require(artCollection.ownerOf(tokenId) == address(this), "Sender does not own the item");
     _;
   }
 
-  modifier HasTransferApproval(uint256 tokenId){
-    require(token.getApproved(tokenId) == address(this), "Market is not approved");
+  modifier ItemExists(uint256 tokenId){
+    require(itemsForSale[tokenId].seller != address(0x0), "Could not find the item.");
     _;
   }
 
-  modifier ItemExists(uint256 id){
-    require(id < itemsForSale.length && itemsForSale[id].id == id, "Could not find item");
+  modifier IsForSale(uint256 tokenId){
+    require(itemsForSale[tokenId].onSale, "The item is already sold.");
     _;
   }
 
-  modifier IsForSale(uint256 id){
-    require(!itemsForSale[id].isSold, "Item is already sold");
-    _;
+  function _putItemForSale(
+    uint256 tokenId
+  ) OnlyItemOwner(tokenId) private {
+    itemsForSale[tokenId] = ItemForSale({
+      seller: payable(msg.sender),
+      price: artCollection.getPrice(tokenId),
+      onSale: true
+    });
+
+    emit ItemAddedForSale(tokenId);
   }
 
-  function putItemForSale(uint256 tokenId, uint256 price) 
-    OnlyItemOwner(tokenId)
-    HasTransferApproval(tokenId)
-    external
-    returns (uint256){
-      require(!activeItems[tokenId], "Item is already up for sale");
+  function buyItem(
+    uint256 tokenId
+  ) ItemExists(tokenId) IsForSale(tokenId) OnlyItemOwner(tokenId) payable external {
+    require(msg.value >= itemsForSale[tokenId].price, "Not enough funds sent");
+    itemsForSale[tokenId].onSale = false;
+    artCollection.safeTransferFrom(address(this), msg.sender, tokenId);
+    itemsForSale[tokenId].seller.transfer(msg.value);
 
-      uint256 newItemId = itemsForSale.length;
-      itemsForSale.push(ItemForSale({
-        id: newItemId,
-        tokenId: tokenId,
-        seller: payable(msg.sender),
-        price: price,
-        isSold: false
-      }));
-      activeItems[tokenId] = true;
-
-      assert(itemsForSale[newItemId].id == newItemId);
-      emit itemAddedForSale(newItemId, tokenId, price);
-      return newItemId;
+    emit ItemSold(tokenId, msg.sender, itemsForSale[tokenId].price);
   }
 
-  function buyItem(uint256 id) 
-    ItemExists(id)
-    IsForSale(id)
-    HasTransferApproval(itemsForSale[id].tokenId)
-    payable 
-    external {
-      require(msg.value >= itemsForSale[id].price, "Not enough funds sent");
-      require(msg.sender != itemsForSale[id].seller);
-
-      itemsForSale[id].isSold = true;
-      activeItems[itemsForSale[id].tokenId] = false;
-      token.safeTransferFrom(itemsForSale[id].seller, msg.sender, itemsForSale[id].tokenId);
-      itemsForSale[id].seller.transfer(msg.value);
-
-      emit itemSold(id, msg.sender, itemsForSale[id].price);
-    }
-
-  function totalItemsForSale() external view returns(uint256) {
-    return itemsForSale.length;
-  }
   
-  function mint(string memory uri) public returns (uint256){
-    return token.mint(uri);
-  }  
+  function mint(
+    uint256 price,
+    string memory uri
+  ) public returns (uint256) {
+    uint256 tokenId = artCollection.mint(price, uri, 5); // default royalty is 5%
+    _putItemForSale(tokenId);
+    return tokenId;
+  }
 
-  function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external pure override returns (bytes4){
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
     return this.onERC721Received.selector;
   }
 }
