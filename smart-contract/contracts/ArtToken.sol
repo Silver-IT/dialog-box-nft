@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 error NotExistingToken();
@@ -16,7 +15,6 @@ error NotEnoughEtherProvided();
 error SoldOut();
 
 contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
-    using Counters for Counters.Counter;
     using Strings for uint256;
 
     uint256 public constant MINT_PRICE = 0.1 ether;
