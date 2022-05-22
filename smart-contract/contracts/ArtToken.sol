@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 error NotExistingToken();
 error ExistingToken();
-error ZeroAddres();
 error NotApprovedOrOwner();
 error NotEnoughEtherProvided();
 error SoldOut();
@@ -65,7 +64,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         _;
     }
 
-    function publicMint(uint256 _tokenId)
+    function publicMint(uint256 _tokenId, uint96 _royaltyFraction)
         external
         payable
         isTokenNotExist(_tokenId)
@@ -74,18 +73,24 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         if (msg.value < MINT_PRICE) {
             revert NotEnoughEtherProvided();
         }
-        _safeMint(_msgSender(), _tokenId);
-
-        emit TokenMinted(_tokenId);
+        _processMint(_msgSender(), _tokenId, _royaltyFraction);
     }
 
-    function reservedMint(address _to, uint256 _tokenId)
-        external
-        onlyOwner
-        isTokenNotExist(_tokenId)
-        isMaxSupplyLimit
-    {
+    function reservedMint(
+        address _to,
+        uint256 _tokenId,
+        uint96 _royaltyFraction
+    ) external onlyOwner isTokenNotExist(_tokenId) isMaxSupplyLimit {
+        _processMint(_to, _tokenId, _royaltyFraction);
+    }
+
+    function _processMint(
+        address _to,
+        uint256 _tokenId,
+        uint96 _royaltyFraction
+    ) private {
         _safeMint(_to, _tokenId);
+        _setTokenRoyalty(_tokenId, _msgSender(), _royaltyFraction);
 
         emit TokenMinted(_tokenId);
     }
@@ -93,8 +98,6 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     function _burn(uint256 _tokenId) internal override(ERC721, ERC721Royalty) {
         super._burn(_tokenId);
     }
-
-    // ----- Token URI Management -----
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
         baseURI = _newBaseURI;
@@ -124,7 +127,6 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
             );
     }
 
-    // ----- Supports Interface -----
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -138,7 +140,13 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
             super.supportsInterface(interfaceId);
     }
 
-    // ----- Before Token Transfer -----
+    function deleteRoyalty(uint256 _tokenId)
+        public
+        isApprovedOrOwner(_tokenId)
+    {
+        _resetTokenRoyalty(_tokenId);
+    }
+
     function _beforeTokenTransfer(
         address _from,
         address _to,
