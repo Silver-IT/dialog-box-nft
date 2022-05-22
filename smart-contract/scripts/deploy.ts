@@ -9,16 +9,10 @@ async function main() {
   console.log('Account balance:', (await deployer.getBalance()).toString())
 
   // We get the contract to deploy
-  const ArtToken = await ethers.getContractFactory("ArtToken");
-  const artToken = await ArtToken.deploy();
-  await artToken.deployed();
-  console.log("ArtToken deployed to:", artToken.address);
-
-  const ArtMarketplace = await ethers.getContractFactory("ArtMarketplace");
-  const artMarketplace = await ArtMarketplace.deploy(artToken.address);
-  await artMarketplace.deployed();
-
-  console.log("ArtMarketplace deployed to:", artMarketplace.address);
+  const ArtTokenManager = await ethers.getContractFactory("ArtTokenManager");
+  const artTokenManager = await ArtTokenManager.deploy();
+  await artTokenManager.deployed();
+  console.log("ArtTokenManager deployed to:", artTokenManager.address);
 }
 
 main()

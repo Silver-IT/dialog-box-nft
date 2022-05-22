@@ -6,7 +6,7 @@ import "./ArtToken.sol";
 
 error InvalidCollectionAddress();
 
-contract ArtTokenCollections is Context {
+contract ArtTokenManager is Context {
     struct ArtTokenMetadata {
         address creator;
         string name;
