@@ -8,7 +8,8 @@ describe("ArtToken", function () {
       "0x97Dee6068fDfD33e82385024B43018b476caD6F4",
       "Art Token",
       "ARTK",
-      "https://jfmc-api-hxs7r5kyjq-uc.a.run.app/"
+      "https://ipfs.com/art-token-baseurl/",
+      "https://ipfs.com/art-token-logo-url/"
     );
     await artToken.deployed();
   });
