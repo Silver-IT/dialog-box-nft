@@ -20,13 +20,15 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     uint256 public constant MINT_PRICE = 0.1 ether;
     uint256 public constant MAX_SUPPLY = 10000;
 
-    string private baseURI;
+    string public baseURI;
+    string public logoURI;
 
     constructor(
         address _initOwner,
         string memory _name,
         string memory _symbol,
-        string memory _initBaseURI
+        string memory _initBaseURI,
+        string memory _initLogoURI
     ) ERC721(_name, _symbol) {
         require(
             _initOwner != address(0),
@@ -35,6 +37,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         _transferOwnership(_initOwner);
 
         baseURI = _initBaseURI;
+        logoURI = _initLogoURI;
     }
 
     event TokenMinted(uint256 _tokenId);
@@ -136,6 +139,10 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
                     ".json"
                 )
             );
+    }
+
+    function setLogoURI(string memory _newLogoURI) public onlyOwner {
+        logoURI = _newLogoURI;
     }
 
     function supportsInterface(bytes4 interfaceId)

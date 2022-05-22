@@ -11,23 +11,25 @@ contract ArtTokenManager is Context {
         address creator;
         string name;
         string symbol;
-        string imageURL;
     }
 
     mapping(address => ArtTokenMetadata) addressToMetadata;
     address[] public addresses;
 
+    event CollectionDeployed(address _addr);
+
     function deployCollection(
         string memory _name,
         string memory _symbol,
-        string memory _imageURL,
-        string memory _initBaseURI
+        string memory _initBaseURI,
+        string memory _initLogoURI
     ) external {
         ArtToken collection = new ArtToken(
             _msgSender(),
             _name,
             _symbol,
-            _initBaseURI
+            _initBaseURI,
+            _initLogoURI
         );
         address addr = address(collection);
         addresses.push(addr);
@@ -36,7 +38,8 @@ contract ArtTokenManager is Context {
         metadata.creator = _msgSender();
         metadata.name = _name;
         metadata.symbol = _symbol;
-        metadata.imageURL = _imageURL;
+
+        emit CollectionDeployed(addr);
     }
 
     function getCollectionMetadata(address _addr)

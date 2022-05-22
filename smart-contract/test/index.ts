@@ -22,7 +22,7 @@ describe("ArtTokenManager", function () {
     const artTokenManager = await ArtTokenManagerFactory.deploy();
     await artTokenManager.deployed();
 
-    await expect(artTokenManager.deployCollection("Art Token", "ARTK", "", ""))
-      .to.not.be.reverted;
+    await expect(artTokenManager.deployCollection("Art Token", "ARTK", "Init Collection Image URL", ""))
+      .to.emit(artTokenManager, "CollectionDeployed");
   });
 });
