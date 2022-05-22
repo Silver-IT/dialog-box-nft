@@ -8,8 +8,8 @@ describe("ArtToken", function () {
       "0x97Dee6068fDfD33e82385024B43018b476caD6F4",
       "Art Token",
       "ARTK",
-      "https://ipfs.com/art-token-baseurl/",
-      "https://ipfs.com/art-token-logo-url/"
+      "https://ipfs.com/baseurl/",
+      "https://ipfs.com/logo-url/"
     );
     await artToken.deployed();
   });
@@ -23,7 +23,13 @@ describe("ArtTokenManager", function () {
     const artTokenManager = await ArtTokenManagerFactory.deploy();
     await artTokenManager.deployed();
 
-    await expect(artTokenManager.deployCollection("Art Token", "ARTK", "Init Collection Image URL", ""))
-      .to.emit(artTokenManager, "CollectionDeployed");
+    await expect(
+      artTokenManager.deployCollection(
+        "Art Token",
+        "ARTK",
+        "https://ipfs.com/baseurl/",
+        "https://ipfs.com/logo-url/"
+      )
+    ).to.emit(artTokenManager, "CollectionDeployed");
   });
 });
