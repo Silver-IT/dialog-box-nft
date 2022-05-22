@@ -23,10 +23,17 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     string private baseURI;
 
     constructor(
+        address _initOwner,
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI
     ) ERC721(_name, _symbol) {
+        require(
+            _initOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        _transferOwnership(_initOwner);
+
         baseURI = _initBaseURI;
     }
 
