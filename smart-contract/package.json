@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "deploy:ropsten": "npx hardhat run --network ropsten ./scripts/deploy.ts"
+    "deploy:ropsten": "npx hardhat run --network ropsten ./scripts/deploy.ts",
+    "deploy:rinkeby": "npx hardhat run --network rinkeby ./scripts/deploy.ts"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
