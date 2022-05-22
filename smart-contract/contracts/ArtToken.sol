@@ -12,6 +12,7 @@ error ExistingToken();
 error NotApprovedOrOwner();
 error NotEnoughEtherProvided();
 error SoldOut();
+error NoTrailingSlash();
 
 contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     using Strings for uint256;
@@ -100,6 +101,9 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     }
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
+        if (bytes(_newBaseURI)[bytes(_newBaseURI).length - 1] != bytes1("/"))
+            revert NoTrailingSlash();
+
         baseURI = _newBaseURI;
 
         emit BaseURIUpdated(_newBaseURI);
