@@ -2,11 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "./ArtToken.sol";
 
 error InvalidCollectionAddress();
 
-contract ArtTokenManager is Context {
+contract ArtTokenManager is Context, Ownable{
     address[] public addresses;
 
     event CollectionDeployed(address _addr);
@@ -34,7 +36,7 @@ contract ArtTokenManager is Context {
         emit CollectionDeployed(addr);
     }
 
-    function getCollectionAddresses() external view returns (address[] memory) {
-        return addresses;
+    function addAddress(address _addr) public onlyOwner {
+        addresses.push(_addr);
     }
 }

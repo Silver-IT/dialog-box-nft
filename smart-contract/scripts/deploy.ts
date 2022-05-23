@@ -31,6 +31,8 @@ async function main() {
   await artTokenManager.deployed();
   console.log("ArtTokenManager deployed to:", artTokenManager.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
+
+  await artTokenManager.addAddress(artToken.address);
 }
 
 main()
