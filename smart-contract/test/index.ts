@@ -9,7 +9,9 @@ describe("ArtToken", function () {
       "Art Token",
       "ARTK",
       "https://ipfs.com/baseurl/",
-      "https://ipfs.com/logo-url/"
+      "https://ipfs.com/logo-url/",
+      100,
+      "100000000000000000"
     );
     await artToken.deployed();
   });
@@ -28,7 +30,9 @@ describe("ArtTokenManager", function () {
         "Art Token",
         "ARTK",
         "https://ipfs.com/baseurl/",
-        "https://ipfs.com/logo-url/"
+        "https://ipfs.com/logo-url/",
+        100,
+        "100000000000000000"
       )
     ).to.emit(artTokenManager, "CollectionDeployed");
   });

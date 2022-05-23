@@ -7,13 +7,6 @@ import "./ArtToken.sol";
 error InvalidCollectionAddress();
 
 contract ArtTokenManager is Context {
-    struct ArtTokenMetadata {
-        address creator;
-        string name;
-        string symbol;
-    }
-
-    mapping(address => ArtTokenMetadata) addressToMetadata;
     address[] public addresses;
 
     event CollectionDeployed(address _addr);
@@ -22,36 +15,23 @@ contract ArtTokenManager is Context {
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
-        string memory _initLogoURI
+        string memory _initLogoURI,
+        uint256 _maxSupply,
+        uint256 _mintPrice
     ) external {
         ArtToken collection = new ArtToken(
             _msgSender(),
             _name,
             _symbol,
             _initBaseURI,
-            _initLogoURI
+            _initLogoURI,
+            _maxSupply,
+            _mintPrice
         );
         address addr = address(collection);
         addresses.push(addr);
 
-        ArtTokenMetadata storage metadata = addressToMetadata[addr];
-        metadata.creator = _msgSender();
-        metadata.name = _name;
-        metadata.symbol = _symbol;
-
         emit CollectionDeployed(addr);
-    }
-
-    function getCollectionMetadata(address _addr)
-        public
-        view
-        returns (ArtTokenMetadata memory)
-    {
-        if (addressToMetadata[_addr].creator == address(0)) {
-            revert InvalidCollectionAddress();
-        }
-
-        return addressToMetadata[_addr];
     }
 
     function getCollectionAddresses() external view returns (address[] memory) {
