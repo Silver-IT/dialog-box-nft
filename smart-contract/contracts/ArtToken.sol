@@ -154,13 +154,12 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         public
         view
         virtual
-        override(ERC721Enumerable, ERC721Royalty, ERC721)
+        override(ERC721, ERC721Royalty, ERC721Enumerable)
         returns (bool)
     {
         return
             interfaceId == type(IERC2981).interfaceId ||
-            interfaceId == type(IERC721Enumerable).interfaceId ||
-            super.supportsInterface(interfaceId);
+            ERC721Enumerable.supportsInterface(interfaceId);
     }
 
     function deleteRoyalty(uint256 _tokenId)
