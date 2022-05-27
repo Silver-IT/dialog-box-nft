@@ -8,17 +8,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ArtToken.sol";
 
 error InvalidCollectionAddress();
+error AlreadyRegisteredAddress();
 error OutOfPermission();
 error Unauthorized();
 
 contract ArtTokenManager is Context, Ownable {
     bytes4 internal constant INTERFACE_ID_ERC721 = 0x80ac58cd;
-    bytes4 internal constant INTERFACE_ID_ERC1155 = 0xd9b67a26;
 
-    address[] public addresses;
+    address[] private addresses;
+    mapping(address => bool) private isRegisteredAddress;
     mapping(address => bool) public authorizedAddresses;
 
-    event CollectionDeployed(address _addr);
+    event CollectionAdded(address _addr);
     event AuthorizationUpdated(address _addr, bool _authorized);
 
     modifier isAuthorizedAddress(address _addr) {
@@ -29,10 +30,7 @@ contract ArtTokenManager is Context, Ownable {
     }
 
     modifier isValidAddress(address _addr) {
-        if (
-            !IERC165(_addr).supportsInterface(INTERFACE_ID_ERC721) &&
-            !IERC165(_addr).supportsInterface(INTERFACE_ID_ERC1155)
-        ) {
+        if (!IERC165(_addr).supportsInterface(INTERFACE_ID_ERC721)) {
             revert InvalidCollectionAddress();
         }
         _;
@@ -56,14 +54,24 @@ contract ArtTokenManager is Context, Ownable {
             _mintPrice
         );
         address addr = address(collection);
+        isRegisteredAddress[addr] = true;
         addresses.push(addr);
 
-        emit CollectionDeployed(addr);
+        emit CollectionAdded(addr);
+    }
+
+    function getAllAddresses() external view returns (address[] memory) {
+        return addresses;
     }
 
     function addAddress(address _addr) public onlyOwner isValidAddress(_addr) {
-        // Need to take care if the _addr is already added
+        if (isRegisteredAddress[_addr]) {
+            revert AlreadyRegisteredAddress();
+        }
+        isRegisteredAddress[_addr] = true;
         addresses.push(_addr);
+
+        emit CollectionAdded(_addr);
     }
 
     function authorizeAddress(address _addr) public onlyOwner {
