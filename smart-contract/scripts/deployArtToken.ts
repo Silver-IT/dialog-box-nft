@@ -17,7 +17,7 @@ async function main() {
     "https://ipfs.com/baseurl/",
     "https://ipfs.com/logo-url/",
     100,
-    "100000000000000000"
+    "1000000000000000"
   );
   await artToken.deployed();
   console.log("ArtToken deployed to:", artToken.address);
