@@ -29,6 +29,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     string public logoURI;
 
     address private royaltyReceiver;
+    mapping(bytes32 => uint256) public metadataIdToTokenId;
 
     constructor(
         address _initOwner,
@@ -109,6 +110,8 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         uint256 curTokenId = _currentTokenId.current();
         _safeMint(_to, curTokenId);
         _setTokenRoyalty(curTokenId, royaltyReceiver, _royaltyFraction);
+
+        metadataIdToTokenId[_metadataId] = curTokenId;
 
         emit TokenMinted(curTokenId, _metadataId);
     }
