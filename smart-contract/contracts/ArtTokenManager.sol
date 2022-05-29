@@ -6,20 +6,22 @@ import "./ArtToken.sol";
 error InvalidCollectionAddress();
 error AlreadyRegisteredAddress();
 error OutOfPermission();
+error AlreadyAuthorized();
+error NotAuthorizedAddress();
 error Unauthorized();
 
 contract ArtTokenManager is Context, Ownable {
     bytes4 internal constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
     address[] private addresses;
-    mapping(address => bool) private isRegisteredAddress;
+    mapping(address => bool) public isRegisteredAddress;
     mapping(address => bool) public authorizedAddresses;
 
     event CollectionAdded(address _addr);
     event AuthorizationUpdated(address _addr, bool _authorized);
 
-    modifier isAuthorizedAddress(address _addr) {
-        if (!authorizedAddresses[_addr]) {
+    modifier isAuthorized() {
+        if (!authorizedAddresses[_msgSender()]) {
             revert Unauthorized();
         }
         _;
@@ -39,7 +41,7 @@ contract ArtTokenManager is Context, Ownable {
         string memory _initLogoURI,
         uint256 _maxSupply,
         uint256 _mintPrice
-    ) external isAuthorizedAddress(_msgSender()) {
+    ) external isAuthorized {
         ArtToken collection = new ArtToken(
             _msgSender(),
             _name,
@@ -71,6 +73,9 @@ contract ArtTokenManager is Context, Ownable {
     }
 
     function authorizeAddress(address _addr) public onlyOwner {
+        if (authorizedAddresses[_addr]) {
+            revert AlreadyAuthorized();
+        }
         authorizedAddresses[_addr] = true;
 
         emit AuthorizationUpdated(_addr, true);
@@ -79,6 +84,10 @@ contract ArtTokenManager is Context, Ownable {
     function unauthorizeAddress(address _addr) public {
         if (_msgSender() != _addr && _msgSender() != owner()) {
             revert OutOfPermission();
+        }
+
+        if (!authorizedAddresses[_addr]) {
+            revert NotAuthorizedAddress();
         }
 
         delete authorizedAddresses[_addr];
