@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 error NotExistingToken();
 error ExistingToken();
@@ -13,15 +14,21 @@ error NotApprovedOrOwner();
 error NotEnoughEtherProvided();
 error SoldOut();
 error NoTrailingSlash();
+error InvalidAddress();
 
 contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     using Strings for uint256;
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _currentTokenId;
 
     uint256 public MINT_PRICE = 0.1 ether;
     uint256 public MAX_SUPPLY = 100;
 
     string public baseURI;
     string public logoURI;
+
+    address private royaltyReceiver;
 
     constructor(
         address _initOwner,
@@ -37,6 +44,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
             "Ownable: new owner is the zero address"
         );
         _transferOwnership(_initOwner);
+        royaltyReceiver = _initOwner;
 
         baseURI = _initBaseURI;
         logoURI = _initLogoURI;
@@ -45,20 +53,13 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         MINT_PRICE = _mintPrice;
     }
 
-    event TokenMinted(uint256 _tokenId);
+    event TokenMinted(uint256 _tokenId, bytes32 _metadataId);
     event BaseURIUpdated(string _baseURI);
+    event RoyaltyReceiverUpdated(address _royaltyReceiver);
 
     modifier isTokenExist(uint256 _tokenId) {
         if (!_exists(_tokenId)) {
             revert NotExistingToken();
-        }
-
-        _;
-    }
-
-    modifier isTokenNotExist(uint256 _tokenId) {
-        if (_exists(_tokenId)) {
-            revert ExistingToken();
         }
 
         _;
@@ -80,39 +81,46 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         _;
     }
 
-    function publicMint(uint256 _tokenId, uint96 _royaltyFraction)
+    function publicMint(bytes32 _metadataId, uint96 _royaltyFraction)
         external
         payable
-        isTokenNotExist(_tokenId)
         isMaxSupplyLimit
     {
         if (msg.value < MINT_PRICE) {
             revert NotEnoughEtherProvided();
         }
-        _processMint(_msgSender(), _tokenId, _royaltyFraction);
+        _processMint(_msgSender(), _metadataId, _royaltyFraction);
     }
 
     function reservedMint(
         address _to,
-        uint256 _tokenId,
+        bytes32 _metadataId,
         uint96 _royaltyFraction
-    ) external onlyOwner isTokenNotExist(_tokenId) isMaxSupplyLimit {
-        _processMint(_to, _tokenId, _royaltyFraction);
+    ) external onlyOwner isMaxSupplyLimit {
+        _processMint(_to, _metadataId, _royaltyFraction);
     }
 
     function _processMint(
         address _to,
-        uint256 _tokenId,
+        bytes32 _metadataId,
         uint96 _royaltyFraction
     ) private {
-        _safeMint(_to, _tokenId);
-        _setTokenRoyalty(_tokenId, _msgSender(), _royaltyFraction);
+        _currentTokenId.increment();
+        uint256 curTokenId = _currentTokenId.current();
+        _safeMint(_to, curTokenId);
+        _setTokenRoyalty(curTokenId, royaltyReceiver, _royaltyFraction);
 
-        emit TokenMinted(_tokenId);
+        emit TokenMinted(curTokenId, _metadataId);
     }
 
     function _burn(uint256 _tokenId) internal override(ERC721, ERC721Royalty) {
         super._burn(_tokenId);
+    }
+
+    function setRoyaltyReceiver(address _royaltyReceiver) external onlyOwner {
+        royaltyReceiver = _royaltyReceiver;
+
+        emit RoyaltyReceiverUpdated(_royaltyReceiver);
     }
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
