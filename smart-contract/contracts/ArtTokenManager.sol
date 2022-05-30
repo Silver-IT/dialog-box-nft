@@ -14,14 +14,14 @@ contract ArtTokenManager is Context, Ownable {
     bytes4 internal constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
     address[] private addresses;
-    mapping(address => bool) public isRegisteredAddress;
-    mapping(address => bool) public authorizedAddresses;
+    mapping(address => bool) public isRegisteredCollection;
+    mapping(address => bool) public isAuthorizedUser;
 
     event CollectionAdded(address _addr);
     event AuthorizationUpdated(address _addr, bool _authorized);
 
     modifier isAuthorized() {
-        if (!authorizedAddresses[_msgSender()]) {
+        if (!isAuthorizedUser[_msgSender()]) {
             revert Unauthorized();
         }
         _;
@@ -52,7 +52,7 @@ contract ArtTokenManager is Context, Ownable {
             _mintPrice
         );
         address addr = address(collection);
-        isRegisteredAddress[addr] = true;
+        isRegisteredCollection[addr] = true;
         addresses.push(addr);
 
         emit CollectionAdded(addr);
@@ -63,20 +63,20 @@ contract ArtTokenManager is Context, Ownable {
     }
 
     function addAddress(address _addr) public onlyOwner isValidAddress(_addr) {
-        if (isRegisteredAddress[_addr]) {
+        if (isRegisteredCollection[_addr]) {
             revert AlreadyRegisteredAddress();
         }
-        isRegisteredAddress[_addr] = true;
+        isRegisteredCollection[_addr] = true;
         addresses.push(_addr);
 
         emit CollectionAdded(_addr);
     }
 
     function authorizeAddress(address _addr) public onlyOwner {
-        if (authorizedAddresses[_addr]) {
+        if (isAuthorizedUser[_addr]) {
             revert AlreadyAuthorized();
         }
-        authorizedAddresses[_addr] = true;
+        isAuthorizedUser[_addr] = true;
 
         emit AuthorizationUpdated(_addr, true);
     }
@@ -86,11 +86,11 @@ contract ArtTokenManager is Context, Ownable {
             revert OutOfPermission();
         }
 
-        if (!authorizedAddresses[_addr]) {
+        if (!isAuthorizedUser[_addr]) {
             revert NotAuthorizedAddress();
         }
 
-        delete authorizedAddresses[_addr];
+        delete isAuthorizedUser[_addr];
 
         emit AuthorizationUpdated(_addr, false);
     }
