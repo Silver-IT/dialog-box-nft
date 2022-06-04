@@ -13,9 +13,11 @@ error Unauthorized();
 contract ArtTokenManager is Context, Ownable {
     bytes4 internal constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
-    address[] private addresses;
+    address[] private collections;
     mapping(address => bool) public isRegisteredCollection;
+    address[] private addresses;
     mapping(address => bool) public isAuthorizedUser;
+    mapping(address => uint256) private addressToIndex;
 
     event CollectionAdded(address _addr);
     event AuthorizationUpdated(address _addr, bool _authorized);
@@ -53,23 +55,35 @@ contract ArtTokenManager is Context, Ownable {
         );
         address addr = address(collection);
         isRegisteredCollection[addr] = true;
-        addresses.push(addr);
+        collections.push(addr);
 
         emit CollectionAdded(addr);
     }
 
-    function getAllAddresses() external view returns (address[] memory) {
-        return addresses;
+    function getAllCollections() external view returns (address[] memory) {
+        return collections;
     }
 
-    function addAddress(address _addr) public onlyOwner isValidAddress(_addr) {
+    function addCollection(address _addr)
+        public
+        onlyOwner
+        isValidAddress(_addr)
+    {
         if (isRegisteredCollection[_addr]) {
             revert AlreadyRegisteredAddress();
         }
         isRegisteredCollection[_addr] = true;
-        addresses.push(_addr);
+        collections.push(_addr);
 
         emit CollectionAdded(_addr);
+    }
+
+    function getAllAuthorizedAddresses()
+        external
+        view
+        returns (address[] memory)
+    {
+        return addresses;
     }
 
     function authorizeAddress(address _addr) public onlyOwner {
@@ -77,6 +91,8 @@ contract ArtTokenManager is Context, Ownable {
             revert AlreadyAuthorized();
         }
         isAuthorizedUser[_addr] = true;
+        addressToIndex[_addr] = addresses.length;
+        addresses.push(_addr);
 
         emit AuthorizationUpdated(_addr, true);
     }
@@ -90,6 +106,13 @@ contract ArtTokenManager is Context, Ownable {
             revert NotAuthorizedAddress();
         }
 
+        uint256 index = addressToIndex[_addr];
+        address lastAddress = addresses[addresses.length - 1];
+        addresses[index] = lastAddress;
+        addressToIndex[lastAddress] = index;
+
+        addresses.pop();
+        delete addressToIndex[_addr];
         delete isAuthorizedUser[_addr];
 
         emit AuthorizationUpdated(_addr, false);
