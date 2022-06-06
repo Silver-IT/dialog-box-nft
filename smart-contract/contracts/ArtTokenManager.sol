@@ -36,6 +36,10 @@ contract ArtTokenManager is Context, Ownable {
         _;
     }
 
+    constructor () {
+        _authorizeAddress(_msgSender());
+    }
+
     function deployCollection(
         string memory _name,
         string memory _symbol,
@@ -86,15 +90,34 @@ contract ArtTokenManager is Context, Ownable {
         return addresses;
     }
 
-    function authorizeAddress(address _addr) public onlyOwner {
-        if (isAuthorizedUser[_addr]) {
-            revert AlreadyAuthorized();
-        }
+    function _authorizeAddress(address _addr) private {
         isAuthorizedUser[_addr] = true;
         addressToIndex[_addr] = addresses.length;
         addresses.push(_addr);
 
         emit AuthorizationUpdated(_addr, true);
+    }
+
+    function authorizeAddress(address _addr) public onlyOwner {
+        if (isAuthorizedUser[_addr]) {
+            revert AlreadyAuthorized();
+        }
+
+        _authorizeAddress(_addr);
+    }
+
+    function _unauthorizeAddress(address _addr) private {
+        uint256 index = addressToIndex[_addr];
+        address lastAddress = addresses[addresses.length - 1];
+        addresses[index] = lastAddress;
+        addressToIndex[lastAddress] = index;
+
+        addresses.pop();
+        delete addressToIndex[_addr];
+        delete isAuthorizedUser[_addr];
+
+        emit AuthorizationUpdated(_addr, false);
+
     }
 
     function unauthorizeAddress(address _addr) public {
@@ -106,15 +129,6 @@ contract ArtTokenManager is Context, Ownable {
             revert NotAuthorizedAddress();
         }
 
-        uint256 index = addressToIndex[_addr];
-        address lastAddress = addresses[addresses.length - 1];
-        addresses[index] = lastAddress;
-        addressToIndex[lastAddress] = index;
-
-        addresses.pop();
-        delete addressToIndex[_addr];
-        delete isAuthorizedUser[_addr];
-
-        emit AuthorizationUpdated(_addr, false);
+        _unauthorizeAddress(_addr);
     }
 }

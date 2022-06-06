@@ -56,6 +56,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
 
     event TokenMinted(uint256 _tokenId, bytes32 _metadataId);
     event BaseURIUpdated(string _baseURI);
+    event LogoURIUpdated(string _logoURI);
     event RoyaltyReceiverUpdated(address _royaltyReceiver);
 
     modifier isTokenExist(uint256 _tokenId) {
@@ -159,6 +160,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
 
     function setLogoURI(string memory _newLogoURI) public onlyOwner {
         logoURI = _newLogoURI;
+        emit LogoURIUpdated(_newLogoURI);
     }
 
     function supportsInterface(bytes4 interfaceId)
