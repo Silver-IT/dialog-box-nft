@@ -15,6 +15,7 @@ error NotEnoughEtherProvided();
 error SoldOut();
 error NoTrailingSlash();
 error InvalidAddress();
+error WithdrawalFailed();
 
 contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     using Strings for uint256;
@@ -119,6 +120,12 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
 
     function _burn(uint256 _tokenId) internal override(ERC721, ERC721Royalty) {
         super._burn(_tokenId);
+    }
+
+    function withdraw() public onlyOwner {
+        if (!payable(_msgSender()).send(address(this).balance)) {
+            revert WithdrawalFailed();
+        }
     }
 
     function setRoyaltyReceiver(address _royaltyReceiver) external onlyOwner {
