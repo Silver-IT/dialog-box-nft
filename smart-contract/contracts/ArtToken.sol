@@ -33,7 +33,6 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
     mapping(bytes32 => uint256) public metadataIdToTokenId;
 
     constructor(
-        address _initOwner,
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
@@ -41,12 +40,7 @@ contract ArtToken is ERC721Royalty, ERC721Burnable, ERC721Enumerable, Ownable {
         uint256 _maxSupply,
         uint256 _mintPrice
     ) ERC721(_name, _symbol) {
-        require(
-            _initOwner != address(0),
-            "Ownable: new owner is the zero address"
-        );
-        _transferOwnership(_initOwner);
-        royaltyReceiver = _initOwner;
+        royaltyReceiver = _msgSender();
 
         baseURI = _initBaseURI;
         logoURI = _initLogoURI;

@@ -5,7 +5,6 @@ describe("ArtToken", function () {
   it("Should deploy ArtToken successfully", async function () {
     const ArtTokenFactory = await ethers.getContractFactory("ArtToken");
     const artToken = await ArtTokenFactory.deploy(
-      "0x97Dee6068fDfD33e82385024B43018b476caD6F4",
       "Art Token",
       "ARTK",
       "https://ipfs.com/baseurl/",

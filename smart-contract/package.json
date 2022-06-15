@@ -1,7 +1,6 @@
 {
   "scripts": {
-    "deploy:token-rinkeby": "npx hardhat run --network rinkeby ./scripts/deployArtToken.ts",
-    "deploy:manager-rinkeby": "npx hardhat run --network rinkeby ./scripts/deployArtTokenManager.ts"
+    "deploy-rinkeby": "npx hardhat run --network rinkeby ./scripts/deployArtTokenManager.ts"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",

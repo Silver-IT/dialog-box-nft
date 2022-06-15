@@ -49,7 +49,6 @@ contract ArtTokenManager is Context, Ownable {
         uint256 _mintPrice
     ) external isAuthorized {
         ArtToken collection = new ArtToken(
-            _msgSender(),
             _name,
             _symbol,
             _initBaseURI,
@@ -57,6 +56,7 @@ contract ArtTokenManager is Context, Ownable {
             _maxSupply,
             _mintPrice
         );
+        collection.transferOwnership(_msgSender());
         address addr = address(collection);
         isRegisteredCollection[addr] = true;
         collections.push(addr);
